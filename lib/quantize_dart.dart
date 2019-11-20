@@ -18,7 +18,7 @@ class _PV {
     return f != null
       ? array.map((d) {
         return f(d);
-      })
+      }).toList()
       : List.from(array);
   }
 
@@ -86,7 +86,7 @@ class PQueue {
     return contents.length;
   }
   map(f) {
-    return contents.map(f);
+    return contents.map(f).toList();
   }
   debug() {
     if (!sorted) { sort(); }
@@ -267,7 +267,7 @@ class CMap {
 
 }
 
-_getHisto(Iterable pixels) {
+_getHisto(List pixels) {
   var histosize = 1 << 3 * _sigbits,
       histo = new List(histosize),
       index,
@@ -284,7 +284,7 @@ _getHisto(Iterable pixels) {
   return histo;
 }
 
-_vboxFromPixels(Iterable pixels, histo) {
+_vboxFromPixels(List pixels, histo) {
   var rmin = 1000000,
       rmax = 0,
       gmin = 1000000,
@@ -456,16 +456,17 @@ _medianCutApply(histo, VBox vbox) {
   return maxw == rw ? doCut('r') : maxw == gw ? doCut('g') : doCut('b');
 }
 
-/// `pixels` - A list of pixels (represented as [[R,G,B]]) to quantize
-/// `maxcolors` - The maximum number of colours allowed in the reduced palette
-/// 
 /// Usually returns an instance of `CMap`,
 /// returns `null` If the parameter is unqualified
+/// 
+/// `pixels` - A list of pixels (represented as [[R,G,B]]) to quantize
+/// 
+/// `maxcolors` - The maximum number of colours allowed in the reduced palette, between 2 and 256
 /// 
 /// The `CMap.palette()` method returns a list that contains the reduced color palette
 /// 
 /// The `CMap.map(pixel)` method maps an individual pixel to the reduced color palette (pixel represented as [R,G,B])
-quantize(Iterable<List<int>> pixels, int maxcolors) {
+quantize(List<List<int>> pixels, int maxcolors) {
   if (pixels.isEmpty || maxcolors < 2 || maxcolors > 256) {
     return null;
   }

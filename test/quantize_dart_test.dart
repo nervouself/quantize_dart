@@ -18,7 +18,7 @@ void main() {
 
     test('CMap.palette => []', () {
       final res = [[204,204,204], [208,212,212], [188,196,188], [212,204,196]];
-      expect(colorMap.palette().toString(), res.map((r) => r).toString());
+      expect(colorMap.palette().toString(), res.toString());
     });
 
     test('CMap.map => []', () {
