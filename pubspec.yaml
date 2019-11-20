@@ -1,0 +1,11 @@
+name: quantize_dart
+description: A package for color quantization, the Dart implementation of quantize.
+version: 0.1.0
+author: ShiLei<nervouself@qq.com>
+homepage: https://github.com/nervouself/quantize_dart
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dev_dependencies:
+  test: ^1.0.0
