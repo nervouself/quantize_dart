@@ -207,7 +207,7 @@ class CMap {
 
   var vboxes;
   CMap() {
-    this.vboxes = new PQueue((a, b) {
+    this.vboxes = PQueue((a, b) {
       return _PV.naturalOrder(a.vbox.count() * a.vbox.volume(), b.vbox.count() * b.vbox.volume());
     });
   }
@@ -269,7 +269,7 @@ class CMap {
 
 _getHisto(List pixels) {
   var histosize = 1 << 3 * _sigbits,
-      histo = new List(histosize),
+      histo = List(histosize),
       index,
       rval,
       gval,
@@ -474,7 +474,7 @@ quantize(List<List<int>> pixels, int maxcolors) {
   var histo = _getHisto(pixels);
 
   var vbox = _vboxFromPixels(pixels, histo),
-      pq = new PQueue((a, b) {
+      pq = PQueue((a, b) {
         return _PV.naturalOrder(a.count(), b.count());
       });
   pq.push(vbox);
@@ -518,7 +518,7 @@ quantize(List<List<int>> pixels, int maxcolors) {
 
   iter(pq, _fractByPopulations * maxcolors);
 
-  var pq2 = new PQueue((a, b) {
+  var pq2 = PQueue((a, b) {
     return _PV.naturalOrder(a.count() * a.volume(), b.count() * b.volume());
   });
 
