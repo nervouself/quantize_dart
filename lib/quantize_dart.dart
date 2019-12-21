@@ -313,6 +313,13 @@ _safeSetArray(List list, index, element) {
   list[index] = element;
 }
 
+_safeGetArray(List list, int index) {
+  if (!(list.length > index)) {
+    return null;
+  }
+  return list[index];
+}
+
 _medianCutApply(histo, VBox vbox) {
   if (vbox.count() == 0) {
     return [null, null];
@@ -412,7 +419,8 @@ _medianCutApply(histo, VBox vbox) {
     }
 
     for (num i = vboxdim1; i <= vboxdim2; i++) {
-      if (partialsum[i] > total / 2) {
+      var partialsum_i = _safeGetArray(partialsum, i);
+      if (partialsum_i != null && partialsum_i > total / 2) {
         vbox1 = vbox.copy();
         vbox2 = vbox.copy();
         left = i - vboxdim1;
@@ -423,12 +431,12 @@ _medianCutApply(histo, VBox vbox) {
           d2 = math.max(vboxdim1, (i - 1 - left / 2) ~/ 1);
         }
 
-        while (partialsum[d2] == null || partialsum[d2] == 0) { d2++; }
+        while (_safeGetArray(partialsum, d2) == null || _safeGetArray(partialsum, d2) == 0) { d2++; }
 
-        count2 = lookaheadsum[d2];
+        count2 = _safeGetArray(lookaheadsum, d2);
 
-        while ((count2 == 0 || count2 == null) && (partialsum[d2 - 1] != null && partialsum[d2 - 1] != 0)) {
-          count2 = lookaheadsum[--d2];
+        while ((count2 == 0 || count2 == null) && (_safeGetArray(partialsum, d2 - 1) != null && _safeGetArray(partialsum, d2 - 1) != 0)) {
+          count2 = _safeGetArray(lookaheadsum, --d2);
         }
 
         switch (color) {

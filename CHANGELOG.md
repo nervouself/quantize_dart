@@ -5,3 +5,7 @@ Initialize publish.
 ## 1.0.1
 
 Remove unnecessary new keyword.
+
+## 1.0.2
+
+Add list get check.
