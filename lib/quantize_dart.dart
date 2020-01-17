@@ -314,7 +314,7 @@ _safeSetArray(List list, index, element) {
 }
 
 _safeGetArray(List list, int index) {
-  if (!(list.length > index)) {
+  if (!(list.length > index) || index < 0) {
     return null;
   }
   return list[index];
