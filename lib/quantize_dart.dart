@@ -164,8 +164,8 @@ class VBox {
     return VBox(r1, r2, g1, g2, b1, b2, histo);
   }
 
-  List<num>? _avg;
-  List<num> avg([bool force = false]) {
+  List<int>? _avg;
+  List<int> avg([bool force = false]) {
     if (_avg == null || force == true) {
       var ntot = 0.0,
           mult = 1 << 8 - _sigbits,
@@ -220,7 +220,7 @@ class VBox {
 
 class VBoxElement {
   VBox vbox;
-  List<num> color;
+  List<int> color;
 
   VBoxElement(this.vbox, this.color);
 }
@@ -239,7 +239,7 @@ class CMap {
     this.vboxes.push(VBoxElement(vbox, vbox.avg()));
   }
 
-  palette() {
+  List<List<int>> palette() {
     return this.vboxes.map((vb) {
       return vb.color;
     });
@@ -520,7 +520,7 @@ List<VBox?> _medianCutApply(List<int?> histo, VBox vbox) {
 /// The `CMap.palette()` method returns a list that contains the reduced color palette
 ///
 /// The `CMap.map(pixel)` method maps an individual pixel to the reduced color palette (pixel represented as [R,G,B])
-quantize(List<List<int>> pixels, int maxcolors) {
+CMap? quantize(List<List<int>> pixels, int maxcolors) {
   if (pixels.isEmpty || maxcolors < 2 || maxcolors > 256) {
     return null;
   }
