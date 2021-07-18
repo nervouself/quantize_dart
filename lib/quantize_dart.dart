@@ -14,32 +14,36 @@
 import 'dart:math' as math;
 
 class _PV {
-  static map(List array, [Function f]) {
+  static List<num> map(List<num> array, [num Function(num)? f]) {
     return f != null
-      ? array.map((d) {
-        return f(d);
-      }).toList()
-      : List.from(array);
+        ? array.map((d) {
+            return f(d);
+          }).toList()
+        : List.from(array);
   }
 
-  static int naturalOrder(a, b) {
-    return a < b ? -1 : a > b ? 1 : 0;
+  static int naturalOrder(num a, num b) {
+    return a < b
+        ? -1
+        : a > b
+            ? 1
+            : 0;
   }
 
-  static sum(List array, [Function f]) {
+  static num sum(List<num> array, [num Function(num)? f]) {
     final combine = f != null
-      ? (p, d, i) {
-        return p + f(d);
-      }
-      : (p, d) {
-        return p + d;
-      };
+        ? (num p, num d) {
+            return p + f(d);
+          }
+        : (num p, num d) {
+            return p + d;
+          };
     return array.fold(0, combine);
   }
 
-  static max(List array, [Function f]) {
+  static num max(List<num> array, [num Function(num)? f]) {
     final list = f != null ? _PV.map(array, f) : array;
-    int max = list.first;
+    var max = list.first;
     list.skip(1).forEach((element) {
       max = math.max(max, element);
     });
@@ -52,56 +56,68 @@ var _sigbits = 5,
     _maxIterations = 1000,
     _fractByPopulations = 0.75;
 
-_getColorIndex(r, g, b) {
+int _getColorIndex(int r, int g, int b) {
   return (r << 2 * _sigbits) + (g << _sigbits) + b;
 }
 
-class PQueue {
-  int Function(dynamic, dynamic) comparator;
+class PQueue<T> {
+  int Function(T, T) comparator;
 
   PQueue(this.comparator);
 
-  var contents = List(),
-      sorted = false;
+  var contents = <T>[], sorted = false;
 
-  sort() {
+  void sort() {
     contents.sort(comparator);
     sorted = true;
   }
 
-  push(o) {
+  void push(T o) {
     contents.add(o);
     sorted = false;
   }
-  peek(index) {
-    if (!sorted) { sort(); }
-    if (index == null) { index = contents.length - 1; }
+
+  T peek([int? index]) {
+    if (!sorted) {
+      sort();
+    }
+    if (index == null) {
+      index = contents.length - 1;
+    }
     return contents[index];
   }
-  pop() {
-    if (!sorted) { sort(); }
+
+  T pop() {
+    if (!sorted) {
+      sort();
+    }
     return contents.removeLast();
   }
-  size() {
+
+  int size() {
     return contents.length;
   }
-  map(f) {
+
+  List<TResult> map<TResult>(TResult Function(T) f) {
     return contents.map(f).toList();
   }
+
   debug() {
-    if (!sorted) { sort(); }
+    if (!sorted) {
+      sort();
+    }
     return contents;
   }
 }
 
 class VBox {
-  var r1;
-  var r2;
-  var g1;
-  var g2;
-  var b1;
-  var b2;
-  var histo;
+  int r1;
+  int r2;
+  int g1;
+  int g2;
+  int b1;
+  int b2;
+  Map<int, int?> histo = {};
 
   VBox(
     this.r1,
@@ -114,7 +130,7 @@ class VBox {
   );
 
   var _volume;
-  volume([force]) {
+  int volume([bool force = false]) {
     if (_volume == null || force == true) {
       _volume = (r2 - r1 + 1) * (g2 - g1 + 1) * (b2 - b1 + 1);
     }
@@ -124,19 +140,15 @@ class VBox {
 
   var _countSet;
   var _count;
-  count([force]) {
+  int count([bool force = false]) {
     if (_countSet == null || force == true) {
-      var npix = 0,
-          i,
-          j,
-          k,
-          index;
+      var npix = 0, i, j, k, index;
 
       for (i = r1; i <= r2; i++) {
         for (j = g1; j <= g2; j++) {
           for (k = b1; k <= b2; k++) {
             index = _getColorIndex(i, j, k);
-            npix += histo[index] == null ? 0 : histo[index];
+            npix += histo[index] == null ? 0 : histo[index]!;
           }
         }
       }
@@ -152,8 +164,8 @@ class VBox {
     return VBox(r1, r2, g1, g2, b1, b2, histo);
   }
 
-  var _avg;
-  avg([force]) {
+  List<int>? _avg;
+  List<int> avg([bool force = false]) {
     if (_avg == null || force == true) {
       var ntot = 0.0,
           mult = 1 << 8 - _sigbits,
@@ -182,47 +194,61 @@ class VBox {
       if (ntot != 0) {
         _avg = [(rsum ~/ ntot), (gsum ~/ ntot), (bsum ~/ ntot)];
       } else {
-        _avg = [(mult * (r1 + r2 + 1) ~/ 2), (mult * (g1 + g2 + 1) ~/ 2), (mult * (b1 + b2 + 1) ~/ 2)];
+        _avg = [
+          (mult * (r1 + r2 + 1) ~/ 2),
+          (mult * (g1 + g2 + 1) ~/ 2),
+          (mult * (b1 + b2 + 1) ~/ 2)
+        ];
       }
     }
 
-    return _avg;
+    return _avg!;
   }
 
   contains(pixel) {
     var rval = pixel[0] >> _rshift,
         gval = pixel[1] >> _rshift,
         bval = pixel[2] >> _rshift;
-    return rval >= r1 && rval <= r2 && gval >= g1 && gval <= g2 && bval >= b1 && bval <= b2;
+    return rval >= r1 &&
+        rval <= r2 &&
+        gval >= g1 &&
+        gval <= g2 &&
+        bval >= b1 &&
+        bval <= b2;
   }
 }
 
 class VBoxElement {
-  var vbox, color;
+  VBox vbox;
+  List<int> color;
 
   VBoxElement(this.vbox, this.color);
 }
 
 class CMap {
+  PQueue<VBoxElement> vboxes;
 
-  var vboxes;
-  CMap() {
+  CMap()
+      :
     this.vboxes = PQueue((a, b) {
-      return _PV.naturalOrder(a.vbox.count() * a.vbox.volume(), b.vbox.count() * b.vbox.volume());
+      return _PV.naturalOrder(a.vbox.count() * a.vbox.volume(),
+              b.vbox.count() * b.vbox.volume());
     });
-  }
 
-  push(vbox) {
+  void push(VBox vbox) {
     this.vboxes.push(VBoxElement(vbox, vbox.avg()));
   }
-  palette() {
+
+  List<List<int>> palette() {
     return this.vboxes.map((vb) {
       return vb.color;
     });
   }
+
   size() {
     return this.vboxes.size();
   }
+
   map(color) {
     var vboxes = this.vboxes;
 
@@ -234,14 +260,14 @@ class CMap {
 
     return this.nearest(color);
   }
+
   nearest(color) {
-    var vboxes = this.vboxes,
-        d1,
-        d2,
-        pColor;
+    var vboxes = this.vboxes, d1, d2, pColor;
 
     for (var i = 0; i < vboxes.size(); i++) {
-      d2 = math.sqrt(math.pow(color[0] - vboxes.peek(i).color[0], 2) + math.pow(color[1] - vboxes.peek(i).color[1], 2) + math.pow(color[2] - vboxes.peek(i).color[2], 2));
+      d2 = math.sqrt(math.pow(color[0] - vboxes.peek(i).color[0], 2) +
+          math.pow(color[1] - vboxes.peek(i).color[1], 2) +
+          math.pow(color[2] - vboxes.peek(i).color[2], 2));
 
       if (d2 < d1 || d1 == null) {
         d1 = d2;
@@ -251,35 +277,40 @@ class CMap {
 
     return pColor;
   }
+
   forcebw() {
-    var vboxes = this.vboxes;
-    vboxes.sort((a, b) {
+    var vboxes = this.vboxes.contents;
+    vboxes.sort((VBoxElement a, VBoxElement b) {
       return _PV.naturalOrder(_PV.sum(a.color), _PV.sum(b.color));
     });
 
     var lowest = vboxes[0].color;
-    if (lowest[0] < 5 && lowest[1] < 5 && lowest[2] < 5) { vboxes[0].color = [0, 0, 0]; } // force lightest color to white if everything > 251
+    if (lowest[0] < 5 && lowest[1] < 5 && lowest[2] < 5) {
+      vboxes[0].color = [0, 0, 0];
+    } // force lightest color to white if everything > 251
 
-    var idx = vboxes.length - 1,
-        highest = vboxes[idx].color;
-    if (highest[0] > 251 && highest[1] > 251 && highest[2] > 251) { vboxes[idx].color = [255, 255, 255]; }
+    var idx = vboxes.length - 1, highest = vboxes[idx].color;
+    if (highest[0] > 251 && highest[1] > 251 && highest[2] > 251) {
+      vboxes[idx].color = [255, 255, 255];
+    }
   }
-
 }
 
-_getHisto(List pixels) {
-  var histosize = 1 << 3 * _sigbits,
-      histo = List(histosize),
-      index,
+List<int?> _getHisto(List pixels) {
+  int histosize = 1 << 3 * _sigbits;
+  List<int?> histo = List<int?>.filled(histosize, null);
+
+  int index,
       rval,
       gval,
       bval;
+
   pixels.forEach((pixel) {
     rval = pixel[0] >> _rshift;
     gval = pixel[1] >> _rshift;
     bval = pixel[2] >> _rshift;
     index = _getColorIndex(rval, gval, bval);
-    histo[index] = (histo[index] == null ?  0 : histo[index]) + 1;
+    histo[index] = (histo[index] == null ? 0 : histo[index]!) + 1;
   });
   return histo;
 }
@@ -299,28 +330,40 @@ _vboxFromPixels(List pixels, histo) {
     rval = pixel[0] >> _rshift;
     gval = pixel[1] >> _rshift;
     bval = pixel[2] >> _rshift;
-    if (rval < rmin) { rmin = rval; }else if (rval > rmax) { rmax = rval; }
-    if (gval < gmin) { gmin = gval; }else if (gval > gmax) { gmax = gval; }
-    if (bval < bmin) { bmin = bval; }else if (bval > bmax) { bmax = bval; }
+    if (rval < rmin) {
+      rmin = rval;
+    } else if (rval > rmax) {
+      rmax = rval;
+    }
+    if (gval < gmin) {
+      gmin = gval;
+    } else if (gval > gmax) {
+      gmax = gval;
+    }
+    if (bval < bmin) {
+      bmin = bval;
+    } else if (bval > bmax) {
+      bmax = bval;
+    }
   });
   return VBox(rmin, rmax, gmin, gmax, bmin, bmax, histo);
 }
 
-_safeSetArray(List list, index, element) {
+void _safeSetArray<T>(List<int> list, int index, int element) {
   if (!(list.length > index)) {
-    list.addAll(List(index - list.length + 1));
+    list.addAll(List.filled(index - list.length + 1, 0));
   }
   list[index] = element;
 }
 
-_safeGetArray(List list, int index) {
+T? _safeGetArray<T>(List<T> list, int index) {
   if (!(list.length > index) || index < 0) {
     return null;
   }
   return list[index];
 }
 
-_medianCutApply(histo, VBox vbox) {
+List<VBox?> _medianCutApply(List<int?> histo, VBox vbox) {
   if (vbox.count() == 0) {
     return [null, null];
   }
@@ -333,23 +376,16 @@ _medianCutApply(histo, VBox vbox) {
     return [vbox.copy()];
   }
 
-  var total = 0,
-      partialsum = List(),
-      lookaheadsum = List(),
-      i,
-      j,
-      k,
-      sum,
-      index;
+  var total = 0, partialsum = <int>[], lookaheadsum = <int>[], i, j, k, index;
 
   if (maxw == rw) {
-    for (i = vbox.r1; i <= vbox.r2; i++) {
-      sum = 0;
+    for (int i = vbox.r1; i <= vbox.r2; i++) {
+      int sum = 0;
 
       for (j = vbox.g1; j <= vbox.g2; j++) {
         for (k = vbox.b1; k <= vbox.b2; k++) {
           index = _getColorIndex(i, j, k);
-          sum += histo[index] == null ? 0 : histo[index];
+          sum += histo[index] == null ? 0 : histo[index]!;
         }
       }
 
@@ -358,12 +394,12 @@ _medianCutApply(histo, VBox vbox) {
     }
   } else if (maxw == gw) {
     for (i = vbox.g1; i <= vbox.g2; i++) {
-      sum = 0;
+      int sum = 0;
 
       for (j = vbox.r1; j <= vbox.r2; j++) {
         for (k = vbox.b1; k <= vbox.b2; k++) {
           index = _getColorIndex(j, i, k);
-          sum += histo[index] == null ? 0 : histo[index];
+          sum += histo[index] == null ? 0 : histo[index]!;
         }
       }
 
@@ -373,12 +409,12 @@ _medianCutApply(histo, VBox vbox) {
   } else {
     /* maxw == bw */
     for (i = vbox.b1; i <= vbox.b2; i++) {
-      sum = 0;
+      int sum = 0;
 
       for (j = vbox.r1; j <= vbox.r2; j++) {
         for (k = vbox.g1; k <= vbox.g2; k++) {
           index = _getColorIndex(j, k, i);
-          sum += histo[index] == null ? 0 : histo[index];
+          sum += histo[index] == null ? 0 : histo[index]!;
         }
       }
 
@@ -387,20 +423,19 @@ _medianCutApply(histo, VBox vbox) {
     }
   }
 
-  partialsum.forEach((d) {
+  partialsum.forEach((int d) {
     final i = partialsum.indexOf(d);
-    _safeSetArray(lookaheadsum, i, total - (d == null ? 0 : d));
+    _safeSetArray(lookaheadsum, i, total - d);
   });
 
   doCut(color) {
-    num vboxdim1;
-    num vboxdim2;
+    int vboxdim1;
+    int vboxdim2;
     num left;
     num right;
-    var vbox1,
-        vbox2,
-        d2,
-        count2 = 0;
+    VBox vbox1, vbox2;
+    var d2;
+    int? count2 = 0;
 
     switch (color) {
       case 'r':
@@ -416,9 +451,11 @@ _medianCutApply(histo, VBox vbox) {
         vboxdim2 = vbox.b2;
         break;
       default:
+        vboxdim1 = 0;
+        vboxdim2 = 0;
     }
 
-    for (num i = vboxdim1; i <= vboxdim2; i++) {
+    for (int i = vboxdim1; i <= vboxdim2; i++) {
       var partialsum_i = _safeGetArray(partialsum, i);
       if (partialsum_i != null && partialsum_i > total / 2) {
         vbox1 = vbox.copy();
@@ -431,11 +468,16 @@ _medianCutApply(histo, VBox vbox) {
           d2 = math.max(vboxdim1, (i - 1 - left / 2) ~/ 1);
         }
 
-        while (_safeGetArray(partialsum, d2) == null || _safeGetArray(partialsum, d2) == 0) { d2++; }
+        while (_safeGetArray(partialsum, d2) == null ||
+            _safeGetArray(partialsum, d2) == 0) {
+          d2++;
+        }
 
         count2 = _safeGetArray(lookaheadsum, d2);
 
-        while ((count2 == 0 || count2 == null) && (_safeGetArray(partialsum, d2 - 1) != null && _safeGetArray(partialsum, d2 - 1) != 0)) {
+        while ((count2 == 0) &&
+            (_safeGetArray(partialsum, d2 - 1) != null &&
+                _safeGetArray(partialsum, d2 - 1) != 0)) {
           count2 = _safeGetArray(lookaheadsum, --d2);
         }
 
@@ -461,20 +503,24 @@ _medianCutApply(histo, VBox vbox) {
     return [null, null];
   }
 
-  return maxw == rw ? doCut('r') : maxw == gw ? doCut('g') : doCut('b');
+  return maxw == rw
+      ? doCut('r')
+      : maxw == gw
+          ? doCut('g')
+          : doCut('b');
 }
 
 /// Usually returns an instance of `CMap`,
 /// returns `null` If the parameter is unqualified
-/// 
+///
 /// `pixels` - A list of pixels (represented as [[R,G,B]]) to quantize
-/// 
+///
 /// `maxcolors` - The maximum number of colours allowed in the reduced palette, between 2 and 256
-/// 
+///
 /// The `CMap.palette()` method returns a list that contains the reduced color palette
-/// 
+///
 /// The `CMap.map(pixel)` method maps an individual pixel to the reduced color palette (pixel represented as [R,G,B])
-quantize(List<List<int>> pixels, int maxcolors) {
+CMap? quantize(List<List<int>> pixels, int maxcolors) {
   if (pixels.isEmpty || maxcolors < 2 || maxcolors > 256) {
     return null;
   }
@@ -482,18 +528,18 @@ quantize(List<List<int>> pixels, int maxcolors) {
   var histo = _getHisto(pixels);
 
   var vbox = _vboxFromPixels(pixels, histo),
-      pq = PQueue((a, b) {
+      pq = PQueue((VBox a, VBox b) {
         return _PV.naturalOrder(a.count(), b.count());
       });
   pq.push(vbox);
 
   iter(lh, target) {
-    var ncolors = lh.size(),
-        niters = 0,
-        vbox;
+    var ncolors = lh.size(), niters = 0, vbox;
 
     while (niters < _maxIterations) {
-      if (ncolors >= target) { return; }
+      if (ncolors >= target) {
+        return;
+      }
 
       if (niters++ > _maxIterations) {
         return;
@@ -526,7 +572,7 @@ quantize(List<List<int>> pixels, int maxcolors) {
 
   iter(pq, _fractByPopulations * maxcolors);
 
-  var pq2 = PQueue((a, b) {
+  var pq2 = PQueue((VBox a, VBox b) {
     return _PV.naturalOrder(a.count() * a.volume(), b.count() * b.volume());
   });
 
@@ -544,4 +590,3 @@ quantize(List<List<int>> pixels, int maxcolors) {
 
   return cmap;
 }
-

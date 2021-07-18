@@ -1,6 +1,5 @@
-import 'package:test/test.dart';
-
 import 'package:quantize_dart/quantize_dart.dart';
+import 'package:test/test.dart';
 
 void main() {
 
